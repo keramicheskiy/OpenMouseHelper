@@ -66,6 +66,12 @@ class RealtimeDatabase {
         }
     }
 
+    fun setValue(value: Boolean, myRef: DatabaseReference) {
+        myRef.setValue(value) { databaseError: DatabaseError, databaseReference: DatabaseReference ->
+            databaseError
+            databaseReference
+        }
+    }
 
 
 }

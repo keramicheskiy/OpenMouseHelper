@@ -8,12 +8,11 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.ValueEventListener
 import java.awt.Dimension
 import java.awt.Toolkit
+import BaseFunctions
 
 
 fun main(args: Array<String>) {
-
     mainFunc()
-
 }
 
 
@@ -26,6 +25,9 @@ fun mainFunc() {
     val myRef = FirebaseDatabase
         .getInstance()
         .getReference("OpenMouse/usersData/${login}")
+    val myRef1 = FirebaseDatabase
+        .getInstance()
+        .getReference("OpenMouse/usersData/${login}")
     var realPassword = RealtimeDatabase().getValue(myRef.child("password"))
 
     var monitorInfo: Dimension = Toolkit.getDefaultToolkit().getScreenSize()
@@ -34,7 +36,7 @@ fun mainFunc() {
     val screenResolutionX = 1920
     val screenResolutionY = 1080
     val displayAttitude: Float = (screenResolutionY.toFloat() / screenResolutionX.toFloat())
-    var bot: Robot = Robot();
+
 
 
     var maxFullDeflectionAngleY: Int
@@ -51,8 +53,6 @@ fun mainFunc() {
     var previousY: Int = 0
     lateinit var fullCoordinateAngleX: String
     lateinit var fullCoordinateAngleY: String
-    var isLoggedIn = false
-    var isGotExtraInfo = false
 
     if (password == realPassword) {
         GlobalScope.launch { // launch a new coroutine in background and continue
@@ -61,15 +61,12 @@ fun mainFunc() {
             maxFullDeflectionAngleX = maxDeflectAngleX * 20
             maxFullDeflectionAngleY = maxDeflectAngleY * 20
 
-            println(RealtimeDatabase().getValue(myRef))
-
             myRef.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     fullCoordinateAngleX = dataSnapshot.child("coordinateX").value.toString()
                     fullCoordinateAngleY = dataSnapshot.child("coordinateY").value.toString()
                     coordinateAngleX = fullCoordinateAngleX.toInt() + maxDeflectAngleX * 10
                     coordinateAngleY = fullCoordinateAngleY.replaceLastCharToRoundedInt().toInt() + maxDeflectAngleY * 10
-
                     previousX = thisX
                     previousY = thisY
                     thisX = nextX
@@ -78,54 +75,52 @@ fun mainFunc() {
                     nextY = screenResolutionY - round(screenResolutionY.toFloat() / maxFullDeflectionAngleY * coordinateAngleY)
 
 
-                    moveMouseTo(bot, previousX, previousY, thisX, thisY, nextX, nextY)
+                    VirtualMouseFunctions().moveMouseTo(previousX, previousY, thisX, thisY, nextX, nextY)
 
-                    println(dataSnapshot.child("lastMouseCommand").value)
 
-//                    if (dataSnapshot.child("lastMouseCommand").value.toString() == "leftMouseButton") {
-//                        doClickMouseCommand(
-//                            "leftMouseButton",
-//                            myRef.child("lastMouseCommand"),
-//                            InputEvent.BUTTON1_DOWN_MASK
-//                        )
-//                    }
+                    if (dataSnapshot.child("didServerHandleCommand").value.toString() == "false") {
+                        when (dataSnapshot.child("lastMouseCommand").value.toString()) {
+                            "leftMouseButton" -> {
+                                VirtualMouseFunctions().doClickMouseCommand(
+                                    myRef,
+                                    InputEvent.BUTTON1_DOWN_MASK
+                                )
+                            }
 
-                    when(dataSnapshot.child("lastMouseCommand").value.toString()) {
-                        "leftMouseButton" -> {
-                            doClickMouseCommand(
-                                "leftMouseButton",
-                                myRef.child("lastMouseCommand"),
-                                InputEvent.BUTTON1_DOWN_MASK
-                            )
+                            "rightMouseButton" -> {
+                                VirtualMouseFunctions().doClickMouseCommand(
+                                    myRef,
+                                    InputEvent.BUTTON3_DOWN_MASK
+                                )
+                            }
+
+                            "holdLeftMouseButton" -> {
+                                VirtualMouseFunctions().doClickMouseCommand(
+                                    myRef,
+                                    InputEvent.BUTTON2_DOWN_MASK
+                                )
+//                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
+//                                        " но без bot.mouseRealize(mouseId) ")
+                            }
+                            "holdRightMouseButton" -> {
+                                VirtualMouseFunctions().doClickMouseCommand(
+                                    myRef,
+                                    InputEvent.BUTTON3_DOWN_MASK
+                                )
+//                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
+//                                        " но без bot.mouseRealize(mouseId) ")
+                            }
+                            "scrollUp" -> {
+                                VirtualMouseFunctions().scrollUp(myRef)
+                            }
+                            "scrollDown" -> {
+                                VirtualMouseFunctions().scrollDown(myRef)
+                            }
+
+
                         }
-                        "rightMouseButton" -> {
-                            doClickMouseCommand(
-                                "rightMouseButton",
-                                myRef.child("lastMouseCommand"),
-                                InputEvent.BUTTON2_DOWN_MASK
-                            )
-                        }
-                        "holdLeftMouseButton" -> {
-                            doClickMouseCommand(
-                                "holdLeftMouseButton",
-                                myRef.child("lastMouseCommand"),
-                                InputEvent.BUTTON3_DOWN_MASK
-                            )
-                        }
-
-
-
-
-
                     }
-
-
-
-
                 }
-
-
-
                 override fun onCancelled(databaseError: DatabaseError) {
                     println("The read failed: " + databaseError.code)
                 }
@@ -135,8 +130,6 @@ fun mainFunc() {
             Thread.sleep(2000L)
         }
     }
-
-
 }
 
 
@@ -149,45 +142,6 @@ fun String.getStringFromIndexToIndex(firstIndex: Int = 0, secondIndex: Int): Str
     return resultString
 }
 
-fun moveMouseTo(bot: Robot, previousX: Int, previousY: Int, thisX: Int, thisY: Int, nextX: Int, nextY: Int) {
-
-    if (previousY != nextY && previousY > nextY + 1 || previousY < nextY - 1) {
-        var intermediateX = round((thisX + nextX).toFloat() / 2)
-        var intermediateY = round((thisY + nextY).toFloat() / 2)
-//        println("$intermediateX $intermediateY")
-
-        bot.mouseMove(round((intermediateX + thisX).toFloat() / 2), round((intermediateY + thisY).toFloat() / 2));
-        bot.mouseMove(intermediateX, intermediateY);
-        bot.mouseMove(round((intermediateX + nextX).toFloat() / 2), round((intermediateY + nextY).toFloat() / 2));
-        bot.mouseMove(nextX, nextY);
-        Thread.sleep(1)
-
-
-//        var a = (nextX - thisX)
-//        var step = round(a.toFloat() / 6)
-//        var count = 0
-//        var x = thisX
-//        var y = thisY
-//        while (x <= nextX && y <= nextY) {
-////            Thread.sleep(1)
-//            x += step
-//            y += step
-//            bot.mouseMove(x, y)
-//            count++
-//            if (count == 6) {
-//                break
-//            }
-//        }
-    }
-}
-
-fun doClickMouseCommand(path: String, myRef: DatabaseReference, mouseId: Int) {
-    var bot: Robot = Robot()
-    // TODO короче, в самом приложении постоянно возвращается значение rightMouseButton , так как происходит не апдейт, а полная замена старой информации
-    RealtimeDatabase().setValue("", myRef.child(path))
-    bot.mousePress(mouseId)
-    bot.mouseRelease(mouseId)
-}
 
 
 
@@ -197,42 +151,19 @@ fun doClickMouseCommand(path: String, myRef: DatabaseReference, mouseId: Int) {
 fun String.replaceLastCharToRoundedInt(): String {
 
     return when (this.get(this.length - 1)) {
-        '0' -> this.getStringFromIndexToIndex(0, this.length - 2) + "0"
-        '1' -> this.getStringFromIndexToIndex(0, this.length - 2) + "0"
-        '2' -> this.getStringFromIndexToIndex(0, this.length - 2) + "0"
-        '3' -> this.getStringFromIndexToIndex(0, this.length - 2) + "0"
-        '4' -> this.getStringFromIndexToIndex(0, this.length - 2) + "0"
-        else -> this.getStringFromIndexToIndex(0, this.length - 2) + "5"
+//        '0' -> this.getStringFromIndexToIndex(0, this.length - 2) + "0"
+//        '1' -> this.getStringFromIndexToIndex(0, this.length - 2) + "0"
+//        '2' -> this.getStringFromIndexToIndex(0, this.length - 2) + "0"
+//        '3' -> this.getStringFromIndexToIndex(0, this.length - 2) + "0"
+//        '4' -> this.getStringFromIndexToIndex(0, this.length - 2) + "0"
+//        else -> this.getStringFromIndexToIndex(0, this.length - 2) + "5"
 
-//        '0' -> this.getStringFromIndexToIndex(0, this.length-2) + "0"
-//        '1' -> this.getStringFromIndexToIndex(0, this.length-2) + "0"
-//        '2' -> this.getStringFromIndexToIndex(0, this.length-2) + "0"
-//        '3' -> this.getStringFromIndexToIndex(0, this.length-2) + "4"
-//        '4' -> this.getStringFromIndexToIndex(0, this.length-2) + "4"
-//        '5' -> this.getStringFromIndexToIndex(0, this.length-2) + "4"
-//        else -> this.getStringFromIndexToIndex(0, this.length-2) + "7"
-
-
+        '0' -> this.getStringFromIndexToIndex(0, this.length-2) + "0"
+        '1' -> this.getStringFromIndexToIndex(0, this.length-2) + "0"
+        '2' -> this.getStringFromIndexToIndex(0, this.length-2) + "0"
+        '3' -> this.getStringFromIndexToIndex(0, this.length-2) + "4"
+        '4' -> this.getStringFromIndexToIndex(0, this.length-2) + "4"
+        '5' -> this.getStringFromIndexToIndex(0, this.length-2) + "4"
+        else -> this.getStringFromIndexToIndex(0, this.length-2) + "7"
     }
 }
-
-
-
-
-//        var a = (nextX - thisX)
-//        var step = round(a.toFloat() / 4)
-//        var count = 0
-//        var x = thisX
-//        var y = thisY
-//        while(x <= nextX && y <= nextY) {
-////            Thread.sleep(1)
-//            x += step
-//            y += step
-//            bot.mouseMove(x,y)
-//            count++
-//            if (count == 4) {
-//                break
-//            }
-
-
-
