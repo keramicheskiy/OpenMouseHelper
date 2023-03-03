@@ -36,6 +36,8 @@ fun mainFunc() {
     var thisY: Int = 0
     var previousX: Int = 0
     var previousY: Int = 0
+    var isHoldLMBReleased: Boolean = true
+    var isHoldRMBReleased: Boolean = true
     lateinit var fullCoordinateAngleX: String
     lateinit var fullCoordinateAngleY: String
 
@@ -54,6 +56,8 @@ fun mainFunc() {
 //    val screenResolutionY = 1080
     val displayAttitude: Float = (screenResolutionY.toFloat() / screenResolutionX.toFloat())
 
+
+    var bot: Robot = Robot();
 
 
     if (password == realPassword) {
@@ -101,20 +105,30 @@ fun mainFunc() {
                         }
 
                         "holdLeftMouseButton" -> {
-                            VirtualMouseFunctions().doClickMouseCommand(
-                                myRef,
-                                InputEvent.BUTTON1_DOWN_MASK
-                            )
-//                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
-//                                        " но без bot.mouseRealize(mouseId) ")
+                            RealtimeDatabase().setValue("", myRef.child("lastMouseCommand"))
+                            RealtimeDatabase().setValue("true", myRef.child("didServerHandleCommand"))
+                            if (isHoldLMBReleased) {
+                                bot.mousePress(InputEvent.BUTTON1_DOWN_MASK)
+                                isHoldLMBReleased = false
+
+                            } else if (!isHoldLMBReleased) {
+                                bot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK)
+                                isHoldLMBReleased = true
+                            }
                         }
                         "holdRightMouseButton" -> {
-                            VirtualMouseFunctions().doClickMouseCommand(
-                                myRef,
-                                InputEvent.BUTTON3_DOWN_MASK
-                            )
-//                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
-//                                        " но без bot.mouseRealize(mouseId) ")
+                            RealtimeDatabase().setValue("", myRef.child("lastMouseCommand"))
+                            RealtimeDatabase().setValue("true", myRef.child("didServerHandleCommand"))
+                            if (isHoldRMBReleased) {
+                                bot.mousePress(InputEvent.BUTTON3_DOWN_MASK)
+                                isHoldRMBReleased = false
+
+                            } else if (!isHoldRMBReleased) {
+                                bot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK)
+                                isHoldRMBReleased = true
+                            }
+
+
                         }
                         "scrollUp" -> {
                             VirtualMouseFunctions().scrollUp(myRef)
