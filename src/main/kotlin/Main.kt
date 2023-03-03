@@ -13,7 +13,12 @@ import config
 
 
 fun main(args: Array<String>) {
-    mainFunc()
+    GlobalScope.launch { // launch a new coroutine in background and continue
+        mainFunc()
+    }
+    while(true) {
+        Thread.sleep(2000L)
+    }
 }
 
 
@@ -44,7 +49,7 @@ fun mainFunc() {
     var monitorInfo: Dimension = Toolkit.getDefaultToolkit().getScreenSize()
     val screenResolutionX = monitorInfo.width
     val screenResolutionY = monitorInfo.height
-    println("$screenResolutionX, $screenResolutionY")
+//    println("$screenResolutionX, $screenResolutionY")
 //    val screenResolutionX = 1920
 //    val screenResolutionY = 1080
     val displayAttitude: Float = (screenResolutionY.toFloat() / screenResolutionX.toFloat())
@@ -52,93 +57,90 @@ fun mainFunc() {
 
 
     if (password == realPassword) {
-        GlobalScope.launch { // launch a new coroutine in background and continue
 //            maxDeflectAngleX = RealtimeDatabase().getValue(myRef.child("maxDeflectAngle")).toString().toInt()
 //            maxDeflectAngleY = (round((maxDeflectAngleX * displayAttitude).toFloat()).toInt())
 //            maxFullDeflectionAngleX = maxDeflectAngleX * 20
 //            maxFullDeflectionAngleY = maxDeflectAngleY * 20
 
-            myRef.addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    maxDeflectAngleX = dataSnapshot.child("maxDeflectAngle").value.toString().toInt()
-                    maxDeflectAngleY = (round((maxDeflectAngleX * displayAttitude).toFloat()).toInt())
-                    maxFullDeflectionAngleX = maxDeflectAngleX * 20
-                    maxFullDeflectionAngleY = maxDeflectAngleY * 20
+        myRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                maxDeflectAngleX = dataSnapshot.child("maxDeflectAngle").value.toString().toInt()
+                maxDeflectAngleY = (round((maxDeflectAngleX * displayAttitude).toFloat()).toInt())
+                maxFullDeflectionAngleX = maxDeflectAngleX * 20
+                maxFullDeflectionAngleY = maxDeflectAngleY * 20
 
-                    fullCoordinateAngleX = dataSnapshot.child("coordinateX").value.toString()
-                    fullCoordinateAngleY = dataSnapshot.child("coordinateY").value.toString()
-                    coordinateAngleX = fullCoordinateAngleX.toInt() + maxDeflectAngleX * 10
-                    coordinateAngleY = fullCoordinateAngleY.replaceLastCharToRoundedInt().toInt() + maxDeflectAngleY * 10
-                    previousX = thisX
-                    previousY = thisY
-                    thisX = nextX
-                    thisY = nextY
-                    nextX = round(screenResolutionX.toFloat() / maxFullDeflectionAngleX * coordinateAngleX)
-                    nextY = screenResolutionY - round(screenResolutionY.toFloat() / maxFullDeflectionAngleY * coordinateAngleY)
-
-
-                    VirtualMouseFunctions().moveMouseTo(previousX, previousY, thisX, thisY, nextX, nextY)
+                fullCoordinateAngleX = dataSnapshot.child("coordinateX").value.toString()
+                fullCoordinateAngleY = dataSnapshot.child("coordinateY").value.toString()
+                coordinateAngleX = fullCoordinateAngleX.toInt() + maxDeflectAngleX * 10
+                coordinateAngleY = fullCoordinateAngleY.replaceLastCharToRoundedInt().toInt() + maxDeflectAngleY * 10
+                previousX = thisX
+                previousY = thisY
+                thisX = nextX
+                thisY = nextY
+                nextX = round(screenResolutionX.toFloat() / maxFullDeflectionAngleX * coordinateAngleX)
+                nextY = screenResolutionY - round(screenResolutionY.toFloat() / maxFullDeflectionAngleY * coordinateAngleY)
 
 
-                    if (dataSnapshot.child("didServerHandleCommand").value.toString() == "false") {
-                        when (dataSnapshot.child("lastMouseCommand").value.toString()) {
-                            "leftMouseButton" -> {
-                                VirtualMouseFunctions().doClickMouseCommand(
-                                    myRef,
-                                    InputEvent.BUTTON1_DOWN_MASK
-                                )
-                            }
-
-                            "rightMouseButton" -> {
-                                VirtualMouseFunctions().doClickMouseCommand(
-                                    myRef,
-                                    InputEvent.BUTTON3_DOWN_MASK
-                                )
-                            }
-
-                            "holdLeftMouseButton" -> {
-                                VirtualMouseFunctions().doClickMouseCommand(
-                                    myRef,
-                                    InputEvent.BUTTON1_DOWN_MASK
-                                )
-//                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
-//                                        " но без bot.mouseRealize(mouseId) ")
-                            }
-                            "holdRightMouseButton" -> {
-                                VirtualMouseFunctions().doClickMouseCommand(
-                                    myRef,
-                                    InputEvent.BUTTON3_DOWN_MASK
-                                )
-//                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
-//                                        " но без bot.mouseRealize(mouseId) ")
-                            }
-                            "scrollUp" -> {
-                                VirtualMouseFunctions().scrollUp(myRef)
-                            }
-                            "scrollDown" -> {
-                                VirtualMouseFunctions().scrollDown(myRef)
-                            }
-                            "pressMouseWheel" -> {
-                                VirtualMouseFunctions().doClickMouseCommand(
-                                    myRef,
-                                    InputEvent.BUTTON2_DOWN_MASK
-                                )
-//                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
-//                                        " но без bot.mouseRealize(mouseId) ")
-                            }
+                VirtualMouseFunctions().moveMouseTo(previousX, previousY, thisX, thisY, nextX, nextY)
 
 
+                if (dataSnapshot.child("didServerHandleCommand").value.toString() == "false") {
+                    when (dataSnapshot.child("lastMouseCommand").value.toString()) {
+                        "leftMouseButton" -> {
+                            VirtualMouseFunctions().doClickMouseCommand(
+                                myRef,
+                                InputEvent.BUTTON1_DOWN_MASK
+                            )
                         }
+
+                        "rightMouseButton" -> {
+                            VirtualMouseFunctions().doClickMouseCommand(
+                                myRef,
+                                InputEvent.BUTTON3_DOWN_MASK
+                            )
+                        }
+
+                        "holdLeftMouseButton" -> {
+                            VirtualMouseFunctions().doClickMouseCommand(
+                                myRef,
+                                InputEvent.BUTTON1_DOWN_MASK
+                            )
+//                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
+//                                        " но без bot.mouseRealize(mouseId) ")
+                        }
+                        "holdRightMouseButton" -> {
+                            VirtualMouseFunctions().doClickMouseCommand(
+                                myRef,
+                                InputEvent.BUTTON3_DOWN_MASK
+                            )
+//                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
+//                                        " но без bot.mouseRealize(mouseId) ")
+                        }
+                        "scrollUp" -> {
+                            VirtualMouseFunctions().scrollUp(myRef)
+                        }
+                        "scrollDown" -> {
+                            VirtualMouseFunctions().scrollDown(myRef)
+                        }
+                        "pressMouseWheel" -> {
+                            VirtualMouseFunctions().doClickMouseCommand(
+                                myRef,
+                                InputEvent.BUTTON2_DOWN_MASK
+                            )
+//                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
+//                                        " но без bot.mouseRealize(mouseId) ")
+                        }
+
+
                     }
                 }
-                override fun onCancelled(databaseError: DatabaseError) {
-                    println("The read failed: " + databaseError.code)
-                }
-            })
-        }
-        while(true) {
-            Thread.sleep(2000L)
-        }
+            }
+            override fun onCancelled(databaseError: DatabaseError) {
+                println("The read failed: " + databaseError.code)
+            }
+        })
+
+
     }
 }
 
