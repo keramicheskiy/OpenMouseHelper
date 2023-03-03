@@ -9,6 +9,7 @@ import com.google.firebase.database.ValueEventListener
 import java.awt.Dimension
 import java.awt.Toolkit
 import BaseFunctions
+import config
 
 
 fun main(args: Array<String>) {
@@ -18,27 +19,6 @@ fun main(args: Array<String>) {
 
 
 fun mainFunc() {
-    val login = "sagay53@mail.ru".replace(".", "+")
-    val password = "Sagay228"
-
-    Firebase().InitializeRealtimeFirebase()
-    val myRef = FirebaseDatabase
-        .getInstance()
-        .getReference("OpenMouse/usersData/${login}")
-    val myRef1 = FirebaseDatabase
-        .getInstance()
-        .getReference("OpenMouse/usersData/${login}")
-    var realPassword = RealtimeDatabase().getValue(myRef.child("password"))
-
-    var monitorInfo: Dimension = Toolkit.getDefaultToolkit().getScreenSize()
-//    val screenResolutionX = monitorInfo.height
-//    val screenResolutionY = monitorInfo.width
-    val screenResolutionX = 1920
-    val screenResolutionY = 1080
-    val displayAttitude: Float = (screenResolutionY.toFloat() / screenResolutionX.toFloat())
-
-
-
     var maxFullDeflectionAngleY: Int
     var maxFullDeflectionAngleX: Int
     var maxDeflectAngleY: Int
@@ -54,15 +34,37 @@ fun mainFunc() {
     lateinit var fullCoordinateAngleX: String
     lateinit var fullCoordinateAngleY: String
 
+    val user = config()
+    val login = user.login.decapitalize().replace(".", "+")
+    val password = user.password
+
+    Firebase().InitializeRealtimeFirebase()
+    val myRef = FirebaseDatabase.getInstance().getReference("OpenMouse/usersData/${login}")
+    var realPassword = RealtimeDatabase().getValue(myRef.child("password"))
+    var monitorInfo: Dimension = Toolkit.getDefaultToolkit().getScreenSize()
+    val screenResolutionX = monitorInfo.width
+    val screenResolutionY = monitorInfo.height
+    println("$screenResolutionX, $screenResolutionY")
+//    val screenResolutionX = 1920
+//    val screenResolutionY = 1080
+    val displayAttitude: Float = (screenResolutionY.toFloat() / screenResolutionX.toFloat())
+
+
+
     if (password == realPassword) {
         GlobalScope.launch { // launch a new coroutine in background and continue
-            maxDeflectAngleX = RealtimeDatabase().getValue(myRef.child("maxDeflectAngle")).toString().toInt()
-            maxDeflectAngleY = (round((maxDeflectAngleX * displayAttitude).toFloat()).toInt())
-            maxFullDeflectionAngleX = maxDeflectAngleX * 20
-            maxFullDeflectionAngleY = maxDeflectAngleY * 20
+//            maxDeflectAngleX = RealtimeDatabase().getValue(myRef.child("maxDeflectAngle")).toString().toInt()
+//            maxDeflectAngleY = (round((maxDeflectAngleX * displayAttitude).toFloat()).toInt())
+//            maxFullDeflectionAngleX = maxDeflectAngleX * 20
+//            maxFullDeflectionAngleY = maxDeflectAngleY * 20
 
             myRef.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    maxDeflectAngleX = dataSnapshot.child("maxDeflectAngle").value.toString().toInt()
+                    maxDeflectAngleY = (round((maxDeflectAngleX * displayAttitude).toFloat()).toInt())
+                    maxFullDeflectionAngleX = maxDeflectAngleX * 20
+                    maxFullDeflectionAngleY = maxDeflectAngleY * 20
+
                     fullCoordinateAngleX = dataSnapshot.child("coordinateX").value.toString()
                     fullCoordinateAngleY = dataSnapshot.child("coordinateY").value.toString()
                     coordinateAngleX = fullCoordinateAngleX.toInt() + maxDeflectAngleX * 10
@@ -97,7 +99,7 @@ fun mainFunc() {
                             "holdLeftMouseButton" -> {
                                 VirtualMouseFunctions().doClickMouseCommand(
                                     myRef,
-                                    InputEvent.BUTTON2_DOWN_MASK
+                                    InputEvent.BUTTON1_DOWN_MASK
                                 )
 //                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
 //                                        " но без bot.mouseRealize(mouseId) ")
@@ -115,6 +117,14 @@ fun mainFunc() {
                             }
                             "scrollDown" -> {
                                 VirtualMouseFunctions().scrollDown(myRef)
+                            }
+                            "pressMouseWheel" -> {
+                                VirtualMouseFunctions().doClickMouseCommand(
+                                    myRef,
+                                    InputEvent.BUTTON2_DOWN_MASK
+                                )
+//                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
+//                                        " но без bot.mouseRealize(mouseId) ")
                             }
 
 
