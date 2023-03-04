@@ -8,9 +8,7 @@ class Firebase {
     val projectName = config.projectName
 
     fun InitializeRealtimeFirebase() {
-
-//        val serviceAccount = FileInputStream("${projectName}/src/main/resources/openmouse-a85e5-firebase-adminsdk-wray8-7e781b6c25.json")
-        val serviceAccount = FileInputStream("OpenMouseHelper/src/main/resources/openmouse-a85e5-firebase-adminsdk-wray8-7e781b6c25.json")
+        val serviceAccount = FileInputStream("src\\main\\resources\\openmouse-a85e5-firebase-adminsdk-wray8-7e781b6c25.json")
         val options = FirebaseOptions.Builder()
             .setCredentials(GoogleCredentials.fromStream(serviceAccount))
             .setDatabaseUrl("https://openmouse-a85e5-default-rtdb.firebaseio.com/")

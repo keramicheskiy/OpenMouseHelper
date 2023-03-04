@@ -49,22 +49,12 @@ fun mainFunc() {
     val login = user.login.decapitalize().replace(".", "+")
     val password = user.password
 
-//    Firebase().InitializeRealtimeFirebase()
-    val serviceAccount = FileInputStream("src\\main\\resources\\openmouse-a85e5-firebase-adminsdk-wray8-7e781b6c25.json")
-    val options = FirebaseOptions.Builder()
-        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-        .setDatabaseUrl("https://openmouse-a85e5-default-rtdb.firebaseio.com/")
-        .build()
-    FirebaseApp.initializeApp(options)
-
+    Firebase().InitializeRealtimeFirebase()
     val myRef = FirebaseDatabase.getInstance().getReference("OpenMouse/usersData/${login}")
     var realPassword = RealtimeDatabase().getValue(myRef.child("password"))
     var monitorInfo: Dimension = Toolkit.getDefaultToolkit().getScreenSize()
     val screenResolutionX = monitorInfo.width
     val screenResolutionY = monitorInfo.height
-//    println("$screenResolutionX, $screenResolutionY")
-//    val screenResolutionX = 1920
-//    val screenResolutionY = 1080
     val displayAttitude: Float = (screenResolutionY.toFloat() / screenResolutionX.toFloat())
 
 
