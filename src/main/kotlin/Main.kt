@@ -9,7 +9,11 @@ import com.google.firebase.database.ValueEventListener
 import java.awt.Dimension
 import java.awt.Toolkit
 import BaseFunctions
+import com.google.auth.oauth2.GoogleCredentials
+import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseOptions
 import config
+import java.io.FileInputStream
 
 
 fun main(args: Array<String>) {
@@ -45,7 +49,14 @@ fun mainFunc() {
     val login = user.login.decapitalize().replace(".", "+")
     val password = user.password
 
-    Firebase().InitializeRealtimeFirebase()
+//    Firebase().InitializeRealtimeFirebase()
+    val serviceAccount = FileInputStream("src\\main\\resources\\openmouse-a85e5-firebase-adminsdk-wray8-7e781b6c25.json")
+    val options = FirebaseOptions.Builder()
+        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+        .setDatabaseUrl("https://openmouse-a85e5-default-rtdb.firebaseio.com/")
+        .build()
+    FirebaseApp.initializeApp(options)
+
     val myRef = FirebaseDatabase.getInstance().getReference("OpenMouse/usersData/${login}")
     var realPassword = RealtimeDatabase().getValue(myRef.child("password"))
     var monitorInfo: Dimension = Toolkit.getDefaultToolkit().getScreenSize()
