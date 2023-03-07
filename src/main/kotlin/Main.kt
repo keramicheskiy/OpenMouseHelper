@@ -1,19 +1,15 @@
-import com.google.firebase.database.*
+
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.awt.Robot
-import java.lang.Math.round
-import java.awt.event.*;
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.ValueEventListener
 import java.awt.Dimension
+import java.awt.Robot
 import java.awt.Toolkit
-import BaseFunctions
-import com.google.auth.oauth2.GoogleCredentials
-import com.google.firebase.FirebaseApp
-import com.google.firebase.FirebaseOptions
-import config
-import java.io.FileInputStream
+import java.awt.event.InputEvent
+import java.lang.Math.round
 
 
 fun main(args: Array<String>) {
@@ -48,24 +44,20 @@ fun mainFunc() {
     val user = config()
     val login = user.login.decapitalize().replace(".", "+")
     val password = user.password
-
+    //  getting firebase realtime database reference of user's data
     Firebase().InitializeRealtimeFirebase()
     val myRef = FirebaseDatabase.getInstance().getReference("OpenMouse/usersData/${login}")
     var realPassword = RealtimeDatabase().getValue(myRef.child("password"))
+    //  getting monitor info
     var monitorInfo: Dimension = Toolkit.getDefaultToolkit().getScreenSize()
     val screenResolutionX = monitorInfo.width
     val screenResolutionY = monitorInfo.height
     val displayAttitude: Float = (screenResolutionY.toFloat() / screenResolutionX.toFloat())
-
-
+    //  getting robot to drag and click mouse
     var bot: Robot = Robot();
 
 
     if (password == realPassword) {
-//            maxDeflectAngleX = RealtimeDatabase().getValue(myRef.child("maxDeflectAngle")).toString().toInt()
-//            maxDeflectAngleY = (round((maxDeflectAngleX * displayAttitude).toFloat()).toInt())
-//            maxFullDeflectionAngleX = maxDeflectAngleX * 20
-//            maxFullDeflectionAngleY = maxDeflectAngleY * 20
 
         myRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -97,14 +89,12 @@ fun mainFunc() {
                                 InputEvent.BUTTON1_DOWN_MASK
                             )
                         }
-
                         "rightMouseButton" -> {
                             VirtualMouseFunctions().doClickMouseCommand(
                                 myRef,
                                 InputEvent.BUTTON3_DOWN_MASK
                             )
                         }
-
                         "holdLeftMouseButton" -> {
                             RealtimeDatabase().setValue("", myRef.child("lastMouseCommand"))
                             RealtimeDatabase().setValue("true", myRef.child("didServerHandleCommand"))
@@ -128,8 +118,6 @@ fun mainFunc() {
                                 bot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK)
                                 isHoldRMBReleased = true
                             }
-
-
                         }
                         "scrollUp" -> {
                             VirtualMouseFunctions().scrollUp(myRef)
@@ -142,8 +130,6 @@ fun mainFunc() {
                                 myRef,
                                 InputEvent.BUTTON2_DOWN_MASK
                             )
-//                                TODO ("тут я использовал ПКМ, нужно сделать так, чтобы было bot.mousePress(mouseId)," +
-//                                        " но без bot.mouseRealize(mouseId) ")
                         }
 
 
@@ -151,7 +137,7 @@ fun mainFunc() {
                 }
             }
             override fun onCancelled(databaseError: DatabaseError) {
-                println("The read failed: " + databaseError.code)
+                println("The read failed: No internet connection.")
             }
         })
 
@@ -168,8 +154,6 @@ fun String.getStringFromIndexToIndex(firstIndex: Int = 0, secondIndex: Int): Str
     }
     return resultString
 }
-
-
 
 
 

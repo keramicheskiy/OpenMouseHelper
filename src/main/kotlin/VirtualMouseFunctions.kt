@@ -1,7 +1,7 @@
+
 import com.google.firebase.database.DatabaseReference
 import java.awt.Robot
 import java.awt.event.KeyEvent
-import java.io.IOException
 import java.lang.Math.round
 
 
@@ -41,7 +41,6 @@ class VirtualMouseFunctions {
        bot.keyPress(KeyEvent.VK_PAGE_DOWN)
        bot.keyRelease(KeyEvent.VK_PAGE_DOWN)
    }
-
 
 
 
